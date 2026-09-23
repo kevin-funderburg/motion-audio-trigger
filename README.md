@@ -1,0 +1,356 @@
+# Halloween Motion Audio Project
+
+A small Raspberry Pi + ESP32 project for triggering outdoor audio effects from motion sensors.
+
+The initial architecture is:
+
+```text
+PIR Sensor
+    |
+    | GPIO
+    v
+ESP32
+    |
+    | HTTP over Wi-Fi
+    v
+Raspberry Pi
+    |
+    | Bluetooth audio
+    v
+Speaker
+```
+
+The Raspberry Pi acts as the central server and audio player. ESP32 devices will eventually detect motion from PIR sensors and send events to the Pi over Wi-Fi.
+
+## Milestone 1: Bluetooth Audio on a Headless Raspberry Pi
+
+The first milestone is getting the Raspberry Pi to reliably play an audio file through a Bluetooth speaker.
+
+This Pi is running Raspberry Pi OS Lite and is used as a headless machine over SSH. That introduces one important Bluetooth-audio complication: Bluetooth pairing can work even when the Linux audio stack is not configured to expose Bluetooth audio devices.
+
+### Audio Stack
+
+The relevant pieces are:
+
+```text
+Application / audio player
+        |
+        v
+     PipeWire
+        |
+        v
+    WirePlumber
+        |
+        v
+       BlueZ
+        |
+        v
+ Bluetooth adapter
+        |
+        v
+ Bluetooth speaker
+```
+
+- **BlueZ** is the Linux Bluetooth stack. It handles discovery, pairing, trust, connections, Bluetooth profiles, etc.
+- **PipeWire** is the multimedia server responsible for routing audio.
+- **WirePlumber** manages PipeWire devices, routing, and policy.
+- **wpctl** is WirePlumber's command-line control utility.
+
+### Install Bluetooth Audio Support
+
+A minimal Raspberry Pi OS Lite installation may have BlueZ installed without the PipeWire Bluetooth audio components.
+
+Install:
+
+```bash
+sudo apt update
+
+sudo apt install \
+    pipewire \
+    pipewire-pulse \
+    wireplumber \
+    libspa-0.2-bluetooth
+```
+
+The less-obvious package here is:
+
+```text
+libspa-0.2-bluetooth
+```
+
+This provides PipeWire's Bluetooth plugins, allowing Bluetooth speakers and headsets discovered through BlueZ to become PipeWire audio devices.
+
+After installation, restart the user-level audio services:
+
+```bash
+systemctl --user restart wireplumber pipewire pipewire-pulse
+```
+
+Check their status with:
+
+```bash
+systemctl --user status wireplumber pipewire pipewire-pulse
+```
+
+### Pair a Bluetooth Speaker
+
+Start the BlueZ command-line client:
+
+```bash
+bluetoothctl
+```
+
+Inside `bluetoothctl`:
+
+```text
+power on
+agent on
+default-agent
+scan on
+```
+
+These commands:
+
+- `agent on` enables the pairing agent that handles Bluetooth pairing/authentication requests.
+- `default-agent` makes that agent the default pairing handler.
+- `scan on` begins discovering nearby Bluetooth devices.
+
+Once the speaker appears, note its Bluetooth MAC address:
+
+```text
+Device 94:4B:F8:7E:A0:FA TOZO PE1
+```
+
+Pair it:
+
+```text
+pair 94:4B:F8:7E:A0:FA
+```
+
+Trust it so future connections do not require manual authorization:
+
+```text
+trust 94:4B:F8:7E:A0:FA
+```
+
+Then connect:
+
+```text
+connect 94:4B:F8:7E:A0:FA
+```
+
+Scanning can then be stopped:
+
+```text
+scan off
+```
+
+Useful inspection commands include:
+
+```text
+devices
+paired-devices
+info 94:4B:F8:7E:A0:FA
+```
+
+### Headless Raspberry Pi Bluetooth Issue
+
+On a headless Pi, pairing may succeed while connecting fails with:
+
+```text
+Failed to connect:
+org.bluez.Error.Failed br-connection-profile-unavailable
+```
+
+In this case:
+
+- BlueZ can see the speaker.
+- The device can successfully pair and become trusted.
+- PipeWire and WirePlumber may both be running.
+- The Bluetooth PipeWire plugin may already be installed.
+- But WirePlumber may still refuse to expose the Bluetooth audio device.
+
+The cause can be WirePlumber's default **seat monitoring** behavior.
+
+Desktop Linux systems normally use `systemd-logind` to determine which local graphical session owns hardware devices. On a headless Pi accessed exclusively over SSH, the login session may be active but have no physical `seat`.
+
+For example:
+
+```text
+SESSION  UID  USER  SEAT
+36       1000 kfun  -
+```
+
+For a dedicated headless audio server, Bluetooth seat monitoring can be disabled.
+
+Create a WirePlumber configuration directory:
+
+```bash
+mkdir -p ~/.config/wireplumber/wireplumber.conf.d
+```
+
+Create:
+
+```text
+~/.config/wireplumber/wireplumber.conf.d/80-disable-bluetooth-seat-monitoring.conf
+```
+
+with:
+
+```text
+wireplumber.profiles = {
+  main = {
+    monitor.bluez.seat-monitoring = disabled
+  }
+}
+```
+
+Restart WirePlumber:
+
+```bash
+systemctl --user restart wireplumber
+```
+
+Then retry:
+
+```bash
+bluetoothctl connect 94:4B:F8:7E:A0:FA
+```
+
+A successful connection should now look like:
+
+```text
+Connection successful
+```
+
+### Inspect Audio Devices
+
+Use:
+
+```bash
+wpctl status
+```
+
+Once Bluetooth audio is working, the speaker should appear as a BlueZ-backed PipeWire device:
+
+```text
+Audio
+ ├─ Devices:
+ │      73. TOZO PE1          [bluez5]
+ │
+ ├─ Sinks:
+ │  *   77. TOZO PE1          [vol: 0.30]
+```
+
+The `*` indicates the current default audio sink.
+
+A **sink** is an audio destination. In this case, the Bluetooth speaker is the destination where applications send playback audio.
+
+### Test Audio Playback
+
+PipeWire includes a simple command-line player:
+
+```bash
+pw-play /path/to/audio.wav
+```
+
+`pw-play` sends the audio file into PipeWire, which routes it to the current default audio sink.
+
+For this project, that should be the Bluetooth speaker.
+
+### Volume Control
+
+WirePlumber's CLI can control sink volume:
+
+```bash
+wpctl set-volume 77 0.90
+```
+
+Volume is expressed as a scalar:
+
+```text
+0.0 =   0%
+0.5 =  50%
+1.0 = 100%
+```
+
+For example:
+
+```bash
+wpctl set-volume 77 0.50
+```
+
+sets the speaker to 50%.
+
+```bash
+wpctl set-volume 77 0.90
+```
+
+sets it to 90%.
+
+Values greater than `1.0` are possible, but represent software amplification and may introduce clipping or distortion.
+
+For outdoor playback, keeping PipeWire near `0.8-1.0` and adjusting the speaker's own hardware volume is preferable to software amplification beyond 100%.
+
+### Useful Bluetooth and Audio Commands
+
+Check Bluetooth state:
+
+```bash
+bluetoothctl
+```
+
+Check PipeWire/WirePlumber state:
+
+```bash
+wpctl status
+```
+
+Restart the audio stack:
+
+```bash
+systemctl --user restart wireplumber pipewire pipewire-pulse
+```
+
+Check audio-service status:
+
+```bash
+systemctl --user status wireplumber pipewire pipewire-pulse
+```
+
+Connect the known speaker directly:
+
+```bash
+bluetoothctl connect 94:4B:F8:7E:A0:FA
+```
+
+Play a WAV file:
+
+```bash
+pw-play sound.wav
+```
+
+Set speaker volume:
+
+```bash
+wpctl set-volume 77 0.90
+```
+
+## Current Status
+
+Bluetooth audio playback from the headless Raspberry Pi to the TOZO PE1 is working.
+
+Next milestone:
+
+```text
+POST /motion
+     |
+     v
+Raspberry Pi HTTP server
+     |
+     v
+Play audio through Bluetooth speaker
+```
+
+The HTTP endpoint will first be tested manually using `curl` before the ESP32 is introduced.
+
