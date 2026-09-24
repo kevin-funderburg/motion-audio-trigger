@@ -1,0 +1,38 @@
+{
+    "name": "Halloween Development Environment",
+    // Runs on the host before Compose starts, generating docker/.env with this
+    // host user's identity and the checkout's absolute path.
+    "initializeCommand": "./docker/setupDockerEnv.sh",
+    // The base Compose file is shared with dockerw. The override derives a
+    // second image that bakes in remoteUser before VS Code starts the service.
+    "dockerComposeFile": [
+        "../docker/compose.yaml",
+        "../docker/compose.devcontainer.yaml"
+    ],
+    "service": "halloween",
+    // Compose already bind-mounts the repository at this exact host path.
+    "workspaceFolder": "${localWorkspaceFolder}",
+    // Dockerfile.devcontainer creates this user during the image build,
+    // preventing root-owned files from being written into the checkout.
+    "remoteUser": "${localEnv:USER}",
+    // Preserve the service command (`sleep infinity`) while the Dev Containers
+    // extension supplies its own wrapper entrypoint for lifecycle management.
+    "overrideCommand": false,
+    // Keep the service available after VS Code closes so it can be reopened
+    // quickly or used through dockerw without recreating the environment.
+    "shutdownAction": "none",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.black-formatter",
+                "yzhang.markdown-all-in-one"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    }
+}

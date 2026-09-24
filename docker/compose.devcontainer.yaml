@@ -1,0 +1,13 @@
+services:
+  halloween:
+    # Keep the VS Code image distinct from the base image used by dockerw.
+    # Dockerfile.devcontainer derives from the base image and bakes in the user
+    # before Dev Containers replaces the entrypoint during startup.
+    image: ${BUILDER_USER}-${WORKSPACE_ID}-devcontainer
+    build:
+      dockerfile: Dockerfile.devcontainer
+      args:
+        BASE_IMAGE: ${BUILDER_USER}-${WORKSPACE_ID}-dev
+        BUILDER_USER: ${BUILDER_USER}
+        BUILDER_UID: ${BUILDER_UID}
+        BUILDER_GID: ${BUILDER_GID}

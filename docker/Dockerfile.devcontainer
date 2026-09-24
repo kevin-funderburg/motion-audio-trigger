@@ -1,0 +1,24 @@
+# The Dev Containers extension replaces the service entrypoint while it starts
+# its helper process. The normal runtime entrypoint therefore cannot create the
+# host-matching user in time for VS Code to attach as `remoteUser`.
+#
+# This image extends the regular local development image and creates that user
+# during the image build instead. dockerw continues to use Dockerfile directly
+# and creates the user at container startup.
+# The Compose override always supplies the local base image. The default only
+# keeps Docker's parser from warning before that build argument is resolved.
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
+
+ARG BUILDER_USER
+ARG BUILDER_UID
+ARG BUILDER_GID
+
+RUN test -n "$BUILDER_USER" && \
+    test -n "$BUILDER_UID" && \
+    test -n "$BUILDER_GID" && \
+    /usr/local/bin/setup-user "$BUILDER_UID" "$BUILDER_GID" "$BUILDER_USER"
+
+# The remote user now exists before VS Code starts the container. Do not set it
+# as the image's default USER: the inherited entrypoint needs root briefly to
+# refresh user configuration, then drops to this user before VS Code attaches.

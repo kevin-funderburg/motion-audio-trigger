@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Run a command in the project development container.
+#
+# It is the CLI counterpart to the devcontainer: it generates the shared
+# Compose environment, uses the same service, mounts the checkout at its host
+# path, and runs commands as the host-matching container user.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EXTRA_ENV=()
+
+while getopts ":e:n" option; do
+    case "$option" in
+        # Pass a one-off environment variable through to the container.
+        e) EXTRA_ENV+=(--env "$OPTARG") ;;
+        # Useful for pipelines where Docker should not allocate a TTY.
+        n) EXTRA_ENV+=(--no-TTY) ;;
+        *)
+            echo "Usage: $0 [-e NAME[=VALUE]] [-n] [command [args...]]" >&2
+            exit 1
+            ;;
+    esac
+done
+shift "$((OPTIND - 1))"
+
+if [ "$#" -eq 0 ]; then
+    # With no command, provide an interactive shell for ad hoc development.
+    set -- bash
+fi
+
+"$ROOT_DIR/docker/setupDockerEnv.sh"
+
+# setupDockerEnv.sh creates the base image only when it is missing. Keep the
+# run invocation focused on starting the requested command.
+docker compose \
+    --project-directory "$ROOT_DIR/docker" \
+    -f "$ROOT_DIR/docker/compose.yaml" \
+    run --rm --workdir "$ROOT_DIR" "${EXTRA_ENV[@]}" halloween "$@"
