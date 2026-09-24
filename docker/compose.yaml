@@ -18,6 +18,9 @@ services:
       # Keep the host's absolute workspace path inside the container. This
       # avoids path differences between dockerw and the devcontainer terminal.
       - ..:${PROJECT_DIR}:cached
+    ports:
+      # Expose the Flask development server to other devices on the Pi's LAN.
+      - "5000:5000"
     # The devcontainer attaches to this long-running process. dockerw overrides
     # it with the command it was asked to run.
     command: sleep infinity

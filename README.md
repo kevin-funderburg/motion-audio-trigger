@@ -354,3 +354,23 @@ Play audio through Bluetooth speaker
 
 The HTTP endpoint will first be tested manually using `curl` before the ESP32 is introduced.
 
+### Motion Endpoint
+
+The initial server accepts a motion event and logs that it arrived. It does not
+yet trigger audio playback. Flask is installed in the development image.
+
+From a devcontainer terminal, start the server:
+
+```bash
+python3 server.py
+```
+
+From another device on the local network, send a test event to the Pi:
+
+```bash
+curl --include --request POST http://<pi-ip-address>:5000/motion
+```
+
+The response is `202 Accepted`, and the server logs the source address of the
+request. Rebuild the devcontainer after changing its Compose configuration so
+the host port mapping is applied.
