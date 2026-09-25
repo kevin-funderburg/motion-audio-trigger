@@ -340,9 +340,16 @@ wpctl set-volume 77 0.90
 
 Bluetooth audio playback from the headless Raspberry Pi to the TOZO PE1 is working.
 
+The development container can also send audio to the host PipeWire server. A
+`POST /motion` request from another device on the local network plays the
+configured sample through the host's default audio sink.
+
 Next milestone:
 
 ```text
+ESP32 PIR event
+     |
+     v
 POST /motion
      |
      v
@@ -352,12 +359,25 @@ Raspberry Pi HTTP server
 Play audio through Bluetooth speaker
 ```
 
-The HTTP endpoint will first be tested manually using `curl` before the ESP32 is introduced.
+The endpoint is tested manually with `curl` before the ESP32 is introduced.
 
 ### Motion Endpoint
 
-The initial server accepts a motion event and logs that it arrived. It does not
-yet trigger audio playback. Flask is installed in the development image.
+The Flask server accepts a motion event, logs its source address, and plays the
+configured sample with `pw-play`. Flask and `pw-play` are installed in the
+development image.
+
+The sample currently played by `server.py` is:
+
+```text
+media/audio/The-creature-2026-09-21-14-47-I-see-you-over-there.mp3
+```
+
+Future samples belong in `media/audio/`.
+
+`pw-play` runs inside the container, but connects to the host user's PipeWire
+socket through the `/run/host-user` bind mount. PipeWire on the Pi then routes
+the audio to its current default sink, such as the paired Bluetooth speaker.
 
 From a devcontainer terminal, start the server:
 
@@ -371,6 +391,9 @@ From another device on the local network, send a test event to the Pi:
 curl --include --request POST http://<pi-ip-address>:5000/motion
 ```
 
-The response is `202 Accepted`, and the server logs the source address of the
-request. Rebuild the devcontainer after changing its Compose configuration so
-the host port mapping is applied.
+Docker maps the Pi's port `5000` to the container's port `5000`, allowing LAN
+clients to reach the server. The request waits for `pw-play` to finish. A
+successful request returns `202 Accepted`; a playback failure returns `500`.
+
+Rebuild the devcontainer after changing its Dockerfile or Compose configuration
+so new packages, mounts, and port mappings are applied.
