@@ -19,6 +19,17 @@ RUN test -n "$BUILDER_USER" && \
     test -n "$BUILDER_GID" && \
     /usr/local/bin/setup-user "$BUILDER_UID" "$BUILDER_GID" "$BUILDER_USER"
 
+# Dev Containers replaces the inherited entrypoint during startup, bypassing
+# ESP-IDF activation. This interactive-Bash workaround is not a complete
+# environment setup mechanism, but it covers VS Code's integrated terminal.
+RUN printf '%s\n' \
+    '' \
+    '# Activate ESP-IDF for interactive Bash shells.' \
+    'if [ -z "${IDF_PYTHON_ENV_PATH:-}" ]; then' \
+    '    . "$IDF_PATH/export.sh"' \
+    'fi' \
+    >> /etc/bash.bashrc
+
 # The remote user now exists before VS Code starts the container. Do not set it
 # as the image's default USER: the inherited entrypoint needs root briefly to
 # refresh user configuration, then drops to this user before VS Code attaches.
