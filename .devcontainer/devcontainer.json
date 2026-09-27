@@ -28,7 +28,8 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "ms-python.black-formatter",
-                "yzhang.markdown-all-in-one"
+                "yzhang.markdown-all-in-one",
+                "eamodio.gitlens"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash"
