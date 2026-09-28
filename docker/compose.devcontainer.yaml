@@ -1,5 +1,9 @@
 services:
   motion-audio-trigger:
+    # Allow the non-root development user to flash and monitor the connected
+    # ESP32 USB-to-UART adapter.
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
     # Keep the VS Code image distinct from the base image used by dockerw.
     # Dockerfile.devcontainer derives from the base image and bakes in the user
     # before Dev Containers replaces the entrypoint during startup.

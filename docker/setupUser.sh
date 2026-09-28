@@ -31,10 +31,21 @@ fi
 USER_HOME="$(getent passwd "$USER_ID" | cut -d: -f6)"
 usermod --login "$USER_NAME" --home "/home/$USER_NAME" "$(getent passwd "$USER_ID" | cut -d: -f1)"
 
+# Add the development user to `dialout`, the group that grants access to serial
+# devices such as the ESP32.
+if getent group dialout > /dev/null; then
+    usermod --append --groups dialout "$USER_NAME"
+fi
+
 if [ "$USER_HOME" != "/home/$USER_NAME" ]; then
     mkdir -p "/home/$USER_NAME"
     chown "$USER_ID:$GROUP_ID" "/home/$USER_NAME"
 fi
+
+# ESP-IDF enables ccache by default. Ensure its cache remains writable when a
+# development image already contains a home directory created as root.
+mkdir -p "/home/$USER_NAME/.cache/ccache"
+chown --recursive "$USER_ID:$GROUP_ID" "/home/$USER_NAME/.cache/ccache"
 
 # Development dependencies occasionally require apt; allow that without an
 # interactive container password that has no corresponding host credential.

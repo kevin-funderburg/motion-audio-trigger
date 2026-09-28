@@ -1,0 +1,9 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/firmware/hello-world",
+    "cmake.buildDirectory": "${workspaceFolder}/firmware/hello-world/build",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/firmware/hello-world/build",
+        "--query-driver=/opt/esp/tools/xtensa-esp-elf/**/xtensa-esp32-elf-gcc"
+    ],
+    "C_Cpp.intelliSenseEngine": "disabled"
+}

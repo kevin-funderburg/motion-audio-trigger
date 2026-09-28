@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pipewire-bin \
     ripgrep \
     sudo \
+    tio \
     tree \
     vim \
     && rm -rf /var/lib/apt/lists/*

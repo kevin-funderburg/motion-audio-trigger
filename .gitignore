@@ -1,2 +1,6 @@
 *.env
 __pycache__/
+*.cache
+firmware/**/build/
+firmware/**/sdkconfig
+firmware/**/sdkconfig.old
