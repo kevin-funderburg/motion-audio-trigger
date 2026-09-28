@@ -1,5 +1,5 @@
 {
-    "name": "Halloween Development Environment",
+    "name": "Motion-Audio-Trigger Development Environment",
     // Runs on the host before Compose starts, generating docker/.env with this
     // host user's identity and the checkout's absolute path.
     "initializeCommand": "./docker/setupDockerEnv.sh",
@@ -9,7 +9,7 @@
         "../docker/compose.yaml",
         "../docker/compose.devcontainer.yaml"
     ],
-    "service": "halloween",
+    "service": "motion-audio-trigger",
     // Compose already bind-mounts the repository at this exact host path.
     "workspaceFolder": "${localWorkspaceFolder}",
     // Dockerfile.devcontainer creates this user during the image build,

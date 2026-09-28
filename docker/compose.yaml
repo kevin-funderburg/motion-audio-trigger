@@ -3,7 +3,7 @@
 name: ${BUILDER_USER}-${WORKSPACE_ID}
 
 services:
-  halloween:
+  motion-audio-trigger:
     # Retaining a named local image makes the CLI and devcontainer use the same
     # image while still rebuilding automatically when Dockerfile inputs change.
     image: ${BUILDER_USER}-${WORKSPACE_ID}-dev

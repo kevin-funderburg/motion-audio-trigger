@@ -36,4 +36,4 @@ fi
 docker compose \
     --project-directory "$ROOT_DIR/docker" \
     -f "$ROOT_DIR/docker/compose.yaml" \
-    run --rm --workdir "$ROOT_DIR" "${EXTRA_ENV[@]}" halloween "$@"
+    run --rm --workdir "$ROOT_DIR" "${EXTRA_ENV[@]}" motion-audio-trigger "$@"

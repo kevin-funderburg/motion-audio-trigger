@@ -1,5 +1,5 @@
 services:
-  halloween:
+  motion-audio-trigger:
     # Keep the VS Code image distinct from the base image used by dockerw.
     # Dockerfile.devcontainer derives from the base image and bakes in the user
     # before Dev Containers replaces the entrypoint during startup.
