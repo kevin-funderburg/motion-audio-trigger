@@ -361,6 +361,36 @@ Play audio through Bluetooth speaker
 
 The endpoint is tested manually with `curl` before the ESP32 is introduced.
 
+## Firmware Playground
+
+`firmware/hello-world/` is a small, standalone ESP-IDF project for validating
+the ESP32 toolchain and QEMU before introducing sensor or network code. It
+builds for the original ESP32 target, which QEMU emulates, and writes `Hello
+world` to the serial log.
+
+From a devcontainer terminal, build it once:
+
+```bash
+cd firmware/hello-world
+idf.py set-target esp32
+idf.py build
+```
+
+Run the built firmware in QEMU. Its serial console is attached to the terminal:
+
+```bash
+idf.py qemu
+```
+
+The boot log ends with:
+
+```text
+I (...) hello-world: Hello world
+```
+
+Use `Ctrl+A`, then `X` to stop QEMU. `build/` and `sdkconfig` are generated
+files and are intentionally not tracked.
+
 ### Motion Endpoint
 
 The Flask server accepts a motion event, logs its source address, and plays the
