@@ -1,9 +1,20 @@
 {
+    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/hello-world/build/compile_commands.json",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modifications",
+    "editor.useTabStops": false,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.minimap.enabled": false,
+    "editor.suggestSelection": "first",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+
     "cmake.sourceDirectory": "${workspaceFolder}/firmware/hello-world",
     "cmake.buildDirectory": "${workspaceFolder}/firmware/hello-world/build",
-    "clangd.arguments": [
-        "--compile-commands-dir=${workspaceFolder}/firmware/hello-world/build",
-        "--query-driver=/opt/esp/tools/xtensa-esp-elf/**/xtensa-esp32-elf-gcc"
-    ],
-    "C_Cpp.intelliSenseEngine": "disabled"
+    "idf.currentSetup": "/opt/esp/idf"
 }

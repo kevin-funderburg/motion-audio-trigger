@@ -30,7 +30,7 @@
                 "ms-vscode.cmake-tools",                 // CMake support for build configuration
                 "ms-vscode.cpptools",                    // C/C++ language support with IntelliSense and debugging
                 "ms-vscode.cpptools-extension-pack",     // Additional tools for C/C++ development
-                "llvm-vs-code-extensions.vscode-clangd", // Enhanced C/C++ language support using Clangd
+                "espressif.esp-idf-extension",           // ESP-IDF project tooling
                 "xaver.clang-format",                    // Manually triggered Clang-formatter for C/C++ code
 
                 "ms-python.python",
