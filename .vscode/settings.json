@@ -1,6 +1,6 @@
 {
     "C_Cpp.intelliSenseEngine": "Default",
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/hello-world/build/compile_commands.json",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/esp32-pir/build/compile_commands.json",
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "modifications",
     "editor.useTabStops": false,
@@ -14,7 +14,7 @@
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
 
-    "cmake.sourceDirectory": "${workspaceFolder}/firmware/hello-world",
-    "cmake.buildDirectory": "${workspaceFolder}/firmware/hello-world/build",
+    "cmake.sourceDirectory": "${workspaceFolder}/firmware/esp32-pir",
+    "cmake.buildDirectory": "${workspaceFolder}/firmware/esp32-pir/build",
     "idf.currentSetup": "/opt/esp/idf"
 }

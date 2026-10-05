@@ -361,17 +361,17 @@ Play audio through Bluetooth speaker
 
 The endpoint is tested manually with `curl` before the ESP32 is introduced.
 
-## Firmware Playground
+## ESP32 PIR Firmware
 
-`firmware/hello-world/` is a small, standalone ESP-IDF project for validating
-the ESP32 toolchain and QEMU before introducing sensor or network code. It
-builds for the original ESP32 target, which QEMU emulates, and writes `Hello
-world` to the serial log.
+`firmware/esp32-pir/` is a standalone ESP-IDF project for an ESP32 connected
+to a PIR sensor. It polls the sensor on GPIO27 and mirrors its state to an LED
+on GPIO26. The project builds for the original ESP32 target, which QEMU
+emulates.
 
 From a devcontainer terminal, build it once:
 
 ```bash
-cd firmware/hello-world
+cd firmware/esp32-pir
 idf.py set-target esp32
 idf.py build
 ```
@@ -385,7 +385,7 @@ idf.py qemu
 The boot log ends with:
 
 ```text
-I (...) hello-world: Hello world
+I (...) motion: PIR input on GPIO27; LED output on GPIO26
 ```
 
 Use `Ctrl+A`, then `X` to stop QEMU. `build/` and `sdkconfig` are generated
