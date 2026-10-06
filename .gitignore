@@ -4,3 +4,4 @@ __pycache__/
 firmware/**/build/
 firmware/**/sdkconfig
 firmware/**/sdkconfig.old
+firmware/esp32-pir/main/wifi/wifi_config.h

@@ -368,6 +368,37 @@ to a PIR sensor. It polls the sensor on GPIO27 and mirrors its state to an LED
 on GPIO26. The project builds for the original ESP32 target, which QEMU
 emulates.
 
+### Wi-Fi Setup
+
+The ESP32 joins a configured 2.4 GHz radio, pinned to its BSSID (Basic Service
+Set Identifier). The channel is discovered automatically. The Pi can remain
+on the network's 5 GHz radio.
+
+Copy `firmware/esp32-pir/main/wifi/wifi_config.example.h` to
+`firmware/esp32-pir/main/wifi/wifi_config.h` and set `WIFI_SSID`, `WIFI_PASSWORD`,
+and `WIFI_BSSID` for your network. The local configuration is ignored by Git.
+Without a password, the firmware logs that Wi-Fi is disabled and still runs
+the PIR/LED loop.
+
+After building, flash from a devcontainer terminal:
+
+```bash
+cd firmware/esp32-pir
+idf.py -b 115200 -p /dev/ttyUSB0 flash monitor
+```
+
+The serial log reports the connected radio address, channel, assigned Internet
+Protocol (IP) address, netmask, gateway, and signal strength in dBm (decibels
+relative to one milliwatt). Address assignment uses DHCP (Dynamic Host
+Configuration Protocol). Disconnections trigger retries after five seconds;
+the PIR/LED loop continues while reconnecting. Pinning the radio prevents
+fallback to another mesh node if that radio is unavailable.
+
+On the Pi host, try `ping <esp32-ip-address>` using the logged address to
+check reachability. Test reconnection by temporarily turning off the chosen
+access point and restoring it. QEMU does not emulate the physical Wi-Fi radio;
+Wi-Fi and sensor behavior must be verified on the board.
+
 From a devcontainer terminal, build it once:
 
 ```bash
