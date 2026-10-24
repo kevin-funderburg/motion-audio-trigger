@@ -10,14 +10,16 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXTRA_ENV=()
 
-while getopts ":e:n" option; do
+while getopts ":e:np" option; do
     case "$option" in
         # Pass a one-off environment variable through to the container.
         e) EXTRA_ENV+=(--env "$OPTARG") ;;
         # Useful for pipelines where Docker should not allocate a TTY.
         n) EXTRA_ENV+=(--no-TTY) ;;
+        # Publish the service's configured ports for commands such as the server.
+        p) EXTRA_ENV+=(--service-ports) ;;
         *)
-            echo "Usage: $0 [-e NAME[=VALUE]] [-n] [command [args...]]" >&2
+            echo "Usage: $0 [-e NAME[=VALUE]] [-n] [-p] [command [args...]]" >&2
             exit 1
             ;;
     esac

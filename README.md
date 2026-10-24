@@ -451,9 +451,17 @@ Use `-t <theme>` or `--theme <theme>` to select an existing theme directory,
 such as `christmas`. Omitting the argument defaults to `halloween`.
 
 ```bash
-./dockerw python3 server.py -t halloween
+./dockerw -p python3 server.py -t halloween
 ```
 
+Plain `dockerw` runs do not publish service ports. Only one container can own
+the Pi's port `5000` at a time. If the devcontainer is running, use its terminal
+to run the server, or stop it from the Pi host before starting the separate
+server container:
+
+```bash
+docker compose --project-directory docker -f docker/compose.yaml stop motion-audio-trigger
+./dockerw -p python3 server.py -t halloween
 ```
 
 From another device on the local network, send a test event to the Pi:
