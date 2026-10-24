@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "wifi/wifi_connection.h"
+#include "http/motion_http.h"
 
 #define PIR_GPIO GPIO_NUM_27
 #define LED_GPIO GPIO_NUM_26
@@ -38,6 +39,7 @@ void app_main(void)
     ESP_LOGI(TAG, "PIR input on GPIO%d; LED output on GPIO%d", PIR_GPIO, LED_GPIO);
 
     wifi_connection_start();
+    motion_http_start();
 
     while (true)
     {
@@ -48,6 +50,11 @@ void app_main(void)
             motion_detected = current_motion;
             gpio_set_level(LED_GPIO, motion_detected);
             ESP_LOGI(TAG, "Motion %s", motion_detected ? "detected" : "ended");
+
+            if (motion_detected)
+            {
+                motion_http_notify();
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(20));

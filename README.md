@@ -399,6 +399,41 @@ check reachability. Test reconnection by temporarily turning off the chosen
 access point and restoring it. QEMU does not emulate the physical Wi-Fi radio;
 Wi-Fi and sensor behavior must be verified on the board.
 
+### Send Motion Events to the Pi
+
+The firmware sends an empty HTTP (Hypertext Transfer Protocol) `POST /motion`
+on each low-to-high PIR transition. The LED continues to mirror the sensor
+while a separate task waits for the server response.
+
+Start the Python server in one devcontainer terminal from the repository root:
+
+```bash
+python3 server.py
+```
+
+In another devcontainer terminal, configure the Pi's endpoint and flash:
+
+```bash
+cd firmware/esp32-pir
+idf.py -DMOTION_SERVER_URL="http://<pi-ip-address>:5000/motion" build
+idf.py -b 115200 -p /dev/ttyUSB0 flash monitor
+```
+
+Use the Pi host's LAN address, not `localhost` or a Docker container address.
+`MOTION_SERVER_URL` is retained in the ignored build directory until changed
+or the build is cleaned. With no URL configured, motion requests are disabled
+and the PIR/LED behavior still works.
+
+Wave in front of the sensor after Wi-Fi receives an address. The server should
+log the ESP32's source address and play the sample; the firmware should log
+`Motion accepted (HTTP 202)`. The server responds after playback finishes,
+so the firmware allows 30 seconds for each request.
+
+Motion while offline is skipped. Multiple detections while a request is in
+progress are combined into at most one pending request. Failed requests are
+logged without automatic retries, because the server may have played the audio
+even if its response was lost. Falling transitions only turn off the LED.
+
 From a devcontainer terminal, build it once:
 
 ```bash
