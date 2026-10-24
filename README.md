@@ -342,7 +342,7 @@ Bluetooth audio playback from the headless Raspberry Pi to the TOZO PE1 is worki
 
 The development container can also send audio to the host PipeWire server. A
 `POST /motion` request from another device on the local network plays the
-configured sample through the host's default audio sink.
+randomly selected sample through the host's default audio sink.
 
 Next milestone:
 
@@ -425,16 +425,17 @@ files and are intentionally not tracked.
 ### Motion Endpoint
 
 The Flask server accepts a motion event, logs its source address, and plays the
-configured sample with `pw-play`. Flask and `pw-play` are installed in the
+randomly selected sample with `pw-play`. Flask and `pw-play` are installed in the
 development image.
 
-The sample currently played by `server.py` is:
-
-```text
-media/audio/The-creature-2026-09-21-14-47-I-see-you-over-there.mp3
-```
-
-Future samples belong in `media/audio/`.
+Audio is grouped by theme under `media/audio/`. Place your own MP3 and WAV samples
+in a theme's `local/` directory, which is ignored by Git. On each request,
+`server.py` gathers all MP3 and WAV files recursively under the selected theme,
+including both `examples/` and `local/`, and chooses randomly from the combined
+list. The selected path is logged. New files are picked up without restarting
+the server, and consecutive requests may select the same sample. If the theme
+contains no samples, the endpoint returns `500` without attempting playback.
+See [the audio README](media/audio/README.md) for the directory layout.
 
 `pw-play` runs inside the container, but connects to the host user's PipeWire
 socket through the `/run/host-user` bind mount. PipeWire on the Pi then routes
@@ -443,7 +444,16 @@ the audio to its current default sink, such as the paired Bluetooth speaker.
 From a devcontainer terminal, start the server:
 
 ```bash
-python3 server.py
+python3 server.py -t halloween
+```
+
+Use `-t <theme>` or `--theme <theme>` to select an existing theme directory,
+such as `christmas`. Omitting the argument defaults to `halloween`.
+
+```bash
+./dockerw python3 server.py -t halloween
+```
+
 ```
 
 From another device on the local network, send a test event to the Pi:
