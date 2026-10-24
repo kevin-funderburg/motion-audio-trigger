@@ -8,6 +8,9 @@
 #define PIR_GPIO GPIO_NUM_27
 #define LED_GPIO GPIO_NUM_26
 
+// Cooldown period after motion is detected before notifying again
+#define MOTION_DETECTED_COOLDOWN_MS (15 * 1000)
+
 static const char *TAG = "motion";
 
 void app_main(void)
@@ -53,7 +56,26 @@ void app_main(void)
 
             if (motion_detected)
             {
-                motion_http_notify();
+                static TickType_t last_motion_time = 0;
+                static bool has_notified_motion = false;
+                const TickType_t now = xTaskGetTickCount();
+
+                // The sensor can be a bit noisy, sending multiple notifications
+                // within a few seconds of each other which is a little jarring and
+                // messes with the flow. Add a cooldown period to prevent rapid notifications.
+                if (!has_notified_motion ||
+                    (TickType_t)(now - last_motion_time) >= pdMS_TO_TICKS(MOTION_DETECTED_COOLDOWN_MS))
+                {
+                    if (motion_http_notify())
+                    {
+                        last_motion_time = now;
+                        has_notified_motion = true;
+                    }
+                }
+                else
+                {
+                    ESP_LOGI(TAG, "notification suppressed due to cooldown");
+                }
             }
         }
 
