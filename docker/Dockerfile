@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     procps \
     python3 \
-    python3-flask \
     python3-pip \
     python3-venv \
     pipewire-bin \
@@ -35,6 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tree \
     vim \
     && rm -rf /var/lib/apt/lists/*
+
+# ESP-IDF activation makes its virtual environment the default Python in
+# terminals. Install the server dependency there so `python3 server.py` works.
+RUN bash -c '. "$IDF_PATH/export.sh" && \
+    python3 -m pip install --no-cache-dir "Flask>=3.0,<4"'
 
 COPY setupUser.sh /usr/local/bin/setup-user
 COPY entrypoint.sh /usr/local/bin/entrypoint
